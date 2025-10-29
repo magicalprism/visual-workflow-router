@@ -1,10 +1,9 @@
-name = "workflow-api"
+name = "solution-arch"
 main = "src/index.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2024-11-01"
 
-[env.production]
-vars = { ENVIRONMENT = "production" }
-
-kv_namespaces = [
-  { binding = "KV_RATE_LIMIT", id = "YOUR_KV_ID_HERE" }
-]
+[vars]
+# EXACT origins your app runs on (dev + prod), comma-separated:
+ALLOWED_ORIGINS = "http://localhost:3000,https://your-app.web.app"
+ACCESS_COOKIE_NAME = "vwf_access"
+SESSION_MAX_AGE_DAYS = "30"
