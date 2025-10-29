@@ -4,9 +4,58 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
+// Define types for the API responses
+interface AnthropicMessage {
+  role: string;
+  content: string;
+}
+
+interface AnthropicResponse {
+  id: string;
+  type: string;
+  role: string;
+  content: Array<{
+    type: string;
+    text: string;
+  }>;
+  model: string;
+  stop_reason: string;
+  stop_sequence: null | string;
+  usage: {
+    input_tokens: number;
+    output_tokens: number;
+  };
+}
+
+interface WorkflowNode {
+  id: string;
+  type: 'action' | 'decision' | 'exception' | 'human' | 'terminal';
+  title: string;
+  x: number;
+  y: number;
+  details: Record<string, any>;
+}
+
+interface WorkflowEdge {
+  id: string;
+  from_node_id: string;
+  to_node_id: string;
+  label?: string;
+  style?: 'solid' | 'dashed';
+}
+
+interface GeneratedWorkflow {
+  title: string;
+  description: string;
+  domain: string;
+  nodes: WorkflowNode[];
+  edges: WorkflowEdge[];
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { prompt } = await request.json();
+    const body = await request.json() as { prompt: string };
+    const prompt = body.prompt;
 
     if (!prompt) {
       return NextResponse.json(
@@ -90,8 +139,10 @@ Create a logical flow with appropriate node types. Position nodes in a readable 
       throw new Error('Failed to generate workflow with AI');
     }
 
-    const aiResult = await anthropicResponse.json();
-    const workflowData = JSON.parse(aiResult.content[0].text);
+    const aiResult = await anthropicResponse.json() as AnthropicResponse;
+    
+    // Parse the workflow data from Claude's response
+    const workflowData: GeneratedWorkflow = JSON.parse(aiResult.content[0].text);
 
     // Create workflow in database
     const { data: workflow, error: workflowError } = await supabase
@@ -110,7 +161,7 @@ Create a logical flow with appropriate node types. Position nodes in a readable 
 
     // Insert nodes
     if (workflowData.nodes && workflowData.nodes.length > 0) {
-      const nodesData = workflowData.nodes.map((node: any) => ({
+      const nodesData = workflowData.nodes.map((node) => ({
         workflow_id: workflow.id,
         id: node.id,
         type: node.type,
@@ -130,7 +181,7 @@ Create a logical flow with appropriate node types. Position nodes in a readable 
 
     // Insert edges
     if (workflowData.edges && workflowData.edges.length > 0) {
-      const edgesData = workflowData.edges.map((edge: any) => ({
+      const edgesData = workflowData.edges.map((edge) => ({
         workflow_id: workflow.id,
         id: edge.id,
         from_node_id: edge.from_node_id,

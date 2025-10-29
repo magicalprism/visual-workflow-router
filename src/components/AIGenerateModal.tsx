@@ -37,7 +37,7 @@ export default function AIGenerateModal({ isOpen, onClose }: AIGenerateModalProp
         throw new Error('Failed to generate workflow');
       }
 
-      const result = await response.json();
+      const result = await response.json() as { workflowId: number };
       
       // Navigate to the newly created workflow
       if (result.workflowId) {
