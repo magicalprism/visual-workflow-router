@@ -1,15 +1,19 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Workflow } from '@/types';
 import { formatRelativeTime } from '@/lib/utils';
 import Link from 'next/link';
+import AIGenerateModal from '@/components/AIGenerateModal';
 
 export default function WorkflowsPage() {
+  const router = useRouter();
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   useEffect(() => {
     loadWorkflows();
@@ -28,6 +32,32 @@ export default function WorkflowsPage() {
       console.error('Error loading workflows:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function createNewWorkflow() {
+    try {
+      const { data, error } = await supabase
+        .from('workflow')
+        .insert([
+          {
+            title: 'Untitled Workflow',
+            domain: 'General',
+            version: '1.0',
+            status: 'draft',
+            description: 'New workflow',
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Navigate to the new workflow editor
+      router.push(`/workflows/${data.id}`);
+    } catch (error) {
+      console.error('Error creating workflow:', error);
+      alert('Failed to create workflow');
     }
   }
 
@@ -58,7 +88,19 @@ export default function WorkflowsPage() {
               onChange={(e) => setSearch(e.target.value)}
               className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            <button 
+              onClick={() => setIsAIModalOpen(true)}
+              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-md hover:from-purple-700 hover:to-blue-700 flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Generate with AI
+            </button>
+            <button 
+              onClick={createNewWorkflow}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
               + New Workflow
             </button>
           </div>
@@ -69,9 +111,20 @@ export default function WorkflowsPage() {
             <p className="text-gray-500 mb-4">
               {search ? 'No workflows found matching your search' : 'No workflows yet'}
             </p>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-              Create Your First Workflow
-            </button>
+            <div className="flex justify-center gap-3">
+              <button 
+                onClick={() => setIsAIModalOpen(true)}
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-md hover:from-purple-700 hover:to-blue-700"
+              >
+                Generate with AI
+              </button>
+              <button 
+                onClick={createNewWorkflow}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Create Your First Workflow
+              </button>
+            </div>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -111,6 +164,12 @@ export default function WorkflowsPage() {
           </div>
         )}
       </div>
+
+      {/* AI Generation Modal */}
+      <AIGenerateModal
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+      />
     </div>
   );
 }

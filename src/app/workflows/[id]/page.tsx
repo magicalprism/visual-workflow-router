@@ -303,7 +303,7 @@ export default function WorkflowBuilderPage() {
         <div className="absolute top-16 right-0 w-96 h-full bg-white border-l shadow-lg overflow-y-auto">
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Node Details</h2>
+              <h2 className="text-lg font-semibold">Details</h2>
               <button
                 onClick={() => setSelectedNode(null)}
                 className="text-gray-500 hover:text-gray-700"
