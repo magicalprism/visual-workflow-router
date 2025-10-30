@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import 'reactflow/dist/style.css';
+
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Workflow } from '@/types';
@@ -9,6 +11,11 @@ import Link from 'next/link';
 import AIGenerateModal from '@/components/AIGenerateModal';
 import DeleteWorkflowButton from '@/components/DeleteWorkflowButton';
 import GraphRenderer from '@/components/Graph/GraphRenderer';
+import ReactFlow, { Background, Controls, MiniMap, Panel, addEdge, applyNodeChanges, applyEdgeChanges, Connection, NodeChange, EdgeChange } from 'reactflow';
+
+// memoized empty types to avoid React Flow warning (replace with your real types and memoize)
+const NODE_TYPES = {};
+const EDGE_TYPES = {};
 
 export default function WorkflowsPage() {
   const router = useRouter();
@@ -18,6 +25,39 @@ export default function WorkflowsPage() {
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [nodes, setNodes] = useState<any[]>([]);
   const [edges, setEdges] = useState<any[]>([]);
+
+  // React Flow change handlers (memoized)
+  const onNodesChange = useCallback((changes: NodeChange[]) => {
+    setNodes((nds) => applyNodeChanges(changes, nds));
+  }, []);
+
+  const onEdgesChange = useCallback((changes: EdgeChange[]) => {
+    setEdges((eds) => applyEdgeChanges(changes, eds));
+  }, []);
+
+  const onConnect = useCallback((params: Connection) => {
+    setEdges((eds) => addEdge(params, eds));
+  }, []);
+
+  const onNodeClick = useCallback((_event: any, node: any) => {
+    // preview: simple log — real editor uses full NodeModal
+    console.log('preview node clicked', node);
+  }, []);
+
+  // simple add node implementation for preview toolbar
+  const handleAddNode = (type: string) => {
+    const id = `preview-${Date.now()}`;
+    const newNode = {
+      id,
+      type: 'default',
+      position: { x: 250 + (nodes.length * 20), y: 200 + (nodes.length * 15) },
+      data: {
+        label: `New ${type}`,
+        nodeData: { id, title: `New ${type}`, type },
+      },
+    };
+    setNodes((nds) => [...nds, newNode]);
+  };
 
   useEffect(() => {
     loadWorkflows();
@@ -195,6 +235,10 @@ export default function WorkflowsPage() {
 
       {/* Note: canvas/editor moved to workflows/[id] — library should not render full GraphRenderer */}
       {/* Optional: show a lightweight preview or thumbnail per workflow in the list above */}
+      <div className="p-6 bg-white rounded-lg shadow-md mt-8">
+        <h2 className="text-2xl font-bold mb-4">Workflow Editor (Preview)</h2>
+        <p className="text-sm text-gray-500">Editor preview removed from library. Open a workflow to edit.</p>
+      </div>
     </div>
   );
 }

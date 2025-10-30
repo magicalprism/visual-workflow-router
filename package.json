@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",
+    "@headlessui/react": "^2.2.9",
     "@hookform/resolvers": "3.3.0",
     "@supabase/supabase-js": "2.39.0",
     "clsx": "2.1.0",
@@ -39,10 +40,10 @@
     "eslint": "8.56.0",
     "eslint-config-next": "14.2.0",
     "postcss": "^8.5.6",
-    "tailwindcss": "3.4.0",
-    "typescript": "^5.4.0",
     "prettier": "latest",
-    "ts-node": "latest"
+    "tailwindcss": "3.4.0",
+    "ts-node": "latest",
+    "typescript": "^5.4.0"
   },
   "keywords": [
     "workflow",
