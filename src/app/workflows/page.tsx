@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Workflow } from '@/types';
@@ -8,6 +8,7 @@ import { formatRelativeTime } from '@/lib/utils';
 import Link from 'next/link';
 import AIGenerateModal from '@/components/AIGenerateModal';
 import DeleteWorkflowButton from '@/components/DeleteWorkflowButton';
+import GraphRenderer from '@/components/Graph/GraphRenderer';
 
 export default function WorkflowsPage() {
   const router = useRouter();
@@ -15,6 +16,8 @@ export default function WorkflowsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [nodes, setNodes] = useState<any[]>([]);
+  const [edges, setEdges] = useState<any[]>([]);
 
   useEffect(() => {
     loadWorkflows();
@@ -66,6 +69,21 @@ export default function WorkflowsPage() {
     w.title.toLowerCase().includes(search.toLowerCase()) ||
     w.domain?.toLowerCase().includes(search.toLowerCase())
   );
+
+  // quick check: try fetching workflows list (optional)
+  useEffect(() => {
+    // best-effort fetch; ignore errors
+    fetch('/api/workflow')
+      .then((r) => r.json())
+      .then((data) => {
+        // if API returns a workflow with nodes/edges, use them
+        if (Array.isArray(data) && data.length > 0 && data[0].nodes) {
+          setNodes(data[0].nodes || []);
+          setEdges(data[0].edges || []);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   if (loading) {
     return (
@@ -174,6 +192,9 @@ export default function WorkflowsPage() {
         isOpen={isAIModalOpen}
         onClose={() => setIsAIModalOpen(false)}
       />
+
+      {/* Note: canvas/editor moved to workflows/[id] — library should not render full GraphRenderer */}
+      {/* Optional: show a lightweight preview or thumbnail per workflow in the list above */}
     </div>
   );
 }
