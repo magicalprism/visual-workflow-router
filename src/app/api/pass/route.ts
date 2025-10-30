@@ -3,17 +3,13 @@ import * as crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
-    const { password } = await request.json();
-    
-    if (!password) {
-      return NextResponse.json(
-        { error: 'Password required' },
-        { status: 400 }
-      );
+    const body = (await request.json()) as any;
+    if (!body || body.password !== process.env.PASSWORD) {
+      return new Response('unauthorized', { status: 401 });
     }
 
     // Hash the provided password
-    const hash = crypto.createHash('sha256').update(password).digest('hex');
+    const hash = crypto.createHash('sha256').update(body.password).digest('hex');
     const expectedHash = process.env.ACCESS_PASSWORD_HASH;
 
     if (!expectedHash) {

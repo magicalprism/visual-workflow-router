@@ -7,6 +7,7 @@ import { Workflow } from '@/types';
 import { formatRelativeTime } from '@/lib/utils';
 import Link from 'next/link';
 import AIGenerateModal from '@/components/AIGenerateModal';
+import DeleteWorkflowButton from '@/components/DeleteWorkflowButton';
 
 export default function WorkflowsPage() {
   const router = useRouter();
@@ -134,15 +135,18 @@ export default function WorkflowsPage() {
                 href={`/workflows/${workflow.id}`}
                 className="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
               >
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-lg font-semibold">{workflow.title}</h3>
-                  <span className={`px-2 py-1 text-xs rounded ${
-                    workflow.status === 'active' ? 'bg-green-100 text-green-800' :
-                    workflow.status === 'draft' ? 'bg-gray-100 text-gray-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {workflow.status}
-                  </span>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-lg font-semibold">{workflow.title}</h3>
+                    {/* delete icon placed to the right of the title, left of the status */}
+                    <DeleteWorkflowButton id={String(workflow.id)} />
+                  </div>
+
+                  <div>
+                    <span className={`px-2 py-1 text-xs rounded ${workflow.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                      {workflow.status}
+                    </span>
+                  </div>
                 </div>
                 
                 {workflow.description && (

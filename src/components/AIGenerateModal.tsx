@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface AIGenerateModalProps {
@@ -13,6 +13,7 @@ export default function AIGenerateModal({ isOpen, onClose }: AIGenerateModalProp
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const controllerRef = useRef<AbortController | null>(null);
 
   if (!isOpen) return null;
 
@@ -24,30 +25,60 @@ export default function AIGenerateModal({ isOpen, onClose }: AIGenerateModalProp
 
     setIsGenerating(true);
     setError(null);
+    controllerRef.current = new AbortController();
 
     try {
-      // Call your API endpoint to generate workflow
+      console.debug('AIGenerate: sending request', { prompt });
+
       const response = await fetch('/api/generate-workflow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
+        signal: controllerRef.current.signal,
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate workflow');
+      // Log status + headers
+      console.groupCollapsed('AIGenerate: response metadata');
+      console.log('status', response.status, response.statusText);
+      const hdrs: Record<string, string> = {};
+      response.headers.forEach((v, k) => (hdrs[k] = v));
+      console.log('headers', hdrs);
+      console.groupEnd();
+
+      // Read full body text for reliable diagnostics
+      const text = await response.text();
+      console.debug('AIGenerate: raw response body', text);
+
+      // Try to parse JSON if possible
+      let parsed: any = null;
+      try {
+        parsed = text ? JSON.parse(text) : null;
+        console.debug('AIGenerate: parsed JSON', parsed);
+      } catch (parseErr) {
+        console.warn('AIGenerate: response not JSON', parseErr);
       }
 
-      const result = await response.json() as { workflowId: number };
-      
-      // Navigate to the newly created workflow
+      if (!response.ok) {
+        const serverMessage =
+          parsed?.error || parsed?.message || text || response.statusText || `HTTP ${response.status}`;
+        console.error('AIGenerate: server error', { status: response.status, body: text, parsed });
+        throw new Error(serverMessage);
+      }
+
+      const result = (parsed ?? {}) as { workflowId?: number };
+
       if (result.workflowId) {
         router.push(`/workflows/${result.workflowId}`);
         onClose();
+      } else {
+        console.warn('AIGenerate: unexpected response', { parsed, text });
+        setError('Workflow generated but response missing workflowId');
       }
     } catch (err) {
-      console.error('Error generating workflow:', err);
-      setError(err instanceof Error ? err.message : 'Failed to generate workflow');
+      if ((err as any).name === 'AbortError') setError('Generation cancelled');
+      else setError((err as Error).message ?? 'Failed to generate workflow');
     } finally {
+      controllerRef.current = null;
       setIsGenerating(false);
     }
   };
@@ -115,9 +146,18 @@ export default function AIGenerateModal({ isOpen, onClose }: AIGenerateModalProp
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 p-6 border-t">
           <button
-            onClick={handleClose}
-            disabled={isGenerating}
-            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition disabled:opacity-50"
+            onClick={() => {
+              // If generating, abort the inflight request and close; otherwise normal close.
+              if (isGenerating) {
+                controllerRef.current?.abort();
+                setIsGenerating(false);
+                setError('Generation cancelled');
+                onClose();
+              } else {
+                handleClose();
+              }
+            }}
+            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
           >
             Cancel
           </button>
