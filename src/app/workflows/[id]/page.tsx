@@ -22,6 +22,8 @@ import ReactFlow,
 import 'reactflow/dist/style.css';
 import FlowToolbar from '@/components/FlowToolbar';
 import NodeModal from '@/app/workflows/NodeModal';
+import ExportControls from '@/components/ExportControls';
+import { useReactFlow } from 'reactflow';
 
 type WorkflowRow = {
   id: number;
@@ -495,6 +497,14 @@ export default function WorkflowBuilderPage() {
     []
   );
 
+  // must be rendered inside ReactFlow so we can read live nodes/edges via useReactFlow()
+  function ExportWrapper({ title }: { title?: string }) {
+    const rf = useReactFlow();
+    const nodes = rf?.getNodes ? rf.getNodes() : [];
+    const edges = rf?.getEdges ? rf.getEdges() : [];
+    return <ExportControls title={title} nodes={nodes} edges={edges} />;
+  }
+
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
@@ -513,7 +523,7 @@ export default function WorkflowBuilderPage() {
             {saving ? 'Saving...' : 'Save'}
           </button>
           <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">Simulate</button>
-          <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">Export</button>
+          <ExportControls title={workflow?.title} nodes={nodes} edges={edges} />
         </div>
       </div>
 
@@ -571,6 +581,7 @@ export default function WorkflowBuilderPage() {
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
         >
+          {/* Export controls removed from canvas (header now provides ExportControls) */}
           <Background />
           <Controls />
           <MiniMap />

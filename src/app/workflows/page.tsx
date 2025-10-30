@@ -235,10 +235,7 @@ export default function WorkflowsPage() {
 
       {/* Note: canvas/editor moved to workflows/[id] — library should not render full GraphRenderer */}
       {/* Optional: show a lightweight preview or thumbnail per workflow in the list above */}
-      <div className="p-6 bg-white rounded-lg shadow-md mt-8">
-        <h2 className="text-2xl font-bold mb-4">Workflow Editor (Preview)</h2>
-        <p className="text-sm text-gray-500">Editor preview removed from library. Open a workflow to edit.</p>
-      </div>
+      {/* Preview notice removed from library page */}
     </div>
   );
 }
