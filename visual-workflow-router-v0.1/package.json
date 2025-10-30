@@ -1,0 +1,35 @@
+{
+  "name": "visual-workflow-router-v0.1",
+  "version": "0.1.0",
+  "description": "A visual workflow builder application.",
+  "main": "src/app/page.tsx",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "seed": "ts-node scripts/seed-sample-data.ts",
+    "setup": "bash scripts/setup-repo.sh"
+  },
+  "dependencies": {
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "@supabase/supabase-js": "latest"
+  },
+  "devDependencies": {
+    "typescript": "latest",
+    "eslint": "latest",
+    "prettier": "latest",
+    "ts-node": "latest"
+  },
+  "keywords": [
+    "workflow",
+    "visualization",
+    "react",
+    "nextjs"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

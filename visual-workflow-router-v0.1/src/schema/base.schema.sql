@@ -1,0 +1,35 @@
+CREATE TABLE workflows (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    domain VARCHAR(255),
+    version INTEGER NOT NULL,
+    status VARCHAR(50) DEFAULT 'draft',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE nodes (
+    id SERIAL PRIMARY KEY,
+    workflow_id INTEGER REFERENCES workflows(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    x INTEGER NOT NULL,
+    y INTEGER NOT NULL,
+    details JSONB,
+    status VARCHAR(50) DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE edges (
+    id SERIAL PRIMARY KEY,
+    workflow_id INTEGER REFERENCES workflows(id) ON DELETE CASCADE,
+    from_node_id INTEGER REFERENCES nodes(id) ON DELETE CASCADE,
+    to_node_id INTEGER REFERENCES nodes(id) ON DELETE CASCADE,
+    label VARCHAR(255),
+    style VARCHAR(50) DEFAULT 'solid',
+    metadata JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
