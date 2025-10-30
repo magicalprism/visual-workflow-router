@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase'; // adjust if your client path differs
+import { supabase } from '@/lib/supabase';
 import ReactFlow, {
   Background,
   Controls,
@@ -17,6 +17,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Workflow, Node as WorkflowNode, Edge as WorkflowEdge } from '@/types';
+import NodeModal from './NodeModal';
 
 export default function WorkflowBuilderPage() {
   const params = useParams();
@@ -31,7 +32,6 @@ export default function WorkflowBuilderPage() {
   const [selectedNode, setSelectedNode] = useState<any | null>(null);
   const [isNodeModalOpen, setIsNodeModalOpen] = useState(false);
 
-  // Load workflow data
   useEffect(() => {
     loadWorkflow();
   }, [workflowId]);
@@ -39,8 +39,6 @@ export default function WorkflowBuilderPage() {
   async function loadWorkflow() {
     try {
       setLoading(true);
-
-      // Load workflow
       const { data: workflowData, error: workflowError } = await supabase
         .from('workflow')
         .select('*')
@@ -50,7 +48,6 @@ export default function WorkflowBuilderPage() {
       if (workflowError) throw workflowError;
       setWorkflow(workflowData);
 
-      // Load nodes
       const { data: nodesData, error: nodesError } = await supabase
         .from('node')
         .select('*')
@@ -58,7 +55,6 @@ export default function WorkflowBuilderPage() {
 
       if (nodesError) throw nodesError;
 
-      // Load edges
       const { data: edgesData, error: edgesError } = await supabase
         .from('edge')
         .select('*')
@@ -66,7 +62,6 @@ export default function WorkflowBuilderPage() {
 
       if (edgesError) throw edgesError;
 
-      // Convert to React Flow format
       const flowNodes: Node[] = (nodesData || []).map((node: WorkflowNode) => ({
         id: node.id.toString(),
         type: getNodeType(node.type),
@@ -99,7 +94,7 @@ export default function WorkflowBuilderPage() {
   function getNodeType(type: string): string {
     switch (type) {
       case 'decision':
-        return 'default'; // diamond shape would need custom node
+        return 'default';
       case 'terminal':
         return 'output';
       case 'action':
@@ -115,7 +110,6 @@ export default function WorkflowBuilderPage() {
     [setEdges]
   );
 
-  // open modal on node click
   const onNodeClick = useCallback((_event: any, node: any) => {
     setSelectedNode(node);
     setIsNodeModalOpen(true);
@@ -124,8 +118,6 @@ export default function WorkflowBuilderPage() {
   async function handleSave() {
     try {
       setSaving(true);
-
-      // Update nodes
       for (const node of nodes) {
         const nodeData = node.data.nodeData as WorkflowNode;
         await supabase
@@ -137,8 +129,6 @@ export default function WorkflowBuilderPage() {
           })
           .eq('id', nodeData.id);
       }
-
-      // Update edges (simplified - in production, handle add/delete)
       alert('Workflow saved!');
     } catch (error) {
       console.error('Error saving:', error);
@@ -168,7 +158,6 @@ export default function WorkflowBuilderPage() {
 
       if (error) throw error;
 
-      // Add to canvas
       const flowNode: Node = {
         id: data.id.toString(),
         type: getNodeType(data.type),
@@ -186,13 +175,11 @@ export default function WorkflowBuilderPage() {
     }
   }
 
-  // delete handler: update canvas state and remove DB records (best-effort)
   async function handleNodeDelete() {
     if (!selectedNode) return;
     const canvasId = selectedNode.id;
     const dbId = selectedNode.data?.nodeData?.id ?? selectedNode.data?.nodeId;
 
-    // Optimistically update UI
     setNodes((nds: any[]) => nds.filter((n) => n.id !== canvasId));
     setEdges((eds: any[]) => eds.filter((e) => {
       const from = e.source ?? e.from ?? e.from_node_id;
@@ -203,7 +190,6 @@ export default function WorkflowBuilderPage() {
     setIsNodeModalOpen(false);
     setSelectedNode(null);
 
-    // Persist deletion to DB
     try {
       if (dbId) {
         await supabase.from('node').delete().eq('id', dbId);
@@ -217,10 +203,6 @@ export default function WorkflowBuilderPage() {
       console.warn('DB delete failed', err);
     }
   }
-
-  // ensure modal has onDelete prop wired below when rendered:
-  // <NodeModal ... onDelete={handleNodeDelete} />
-  // ...rest of component...
 
   if (loading) {
     return (
@@ -246,7 +228,6 @@ export default function WorkflowBuilderPage() {
 
   return (
     <div className="h-screen flex flex-col">
-      {/* Header */}
       <div className="bg-white border-b px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
@@ -279,7 +260,6 @@ export default function WorkflowBuilderPage() {
         </div>
       </div>
 
-      {/* Canvas */}
       <div className="flex-1 relative">
         <ReactFlow
           nodes={nodes}
@@ -294,7 +274,6 @@ export default function WorkflowBuilderPage() {
           <Controls />
           <MiniMap />
           
-          {/* Toolbar Panel */}
           <Panel position="top-left" className="bg-white rounded-lg shadow-lg p-2 m-4">
             <div className="flex gap-2">
               <button
@@ -337,96 +316,13 @@ export default function WorkflowBuilderPage() {
         </ReactFlow>
       </div>
 
-      {/* Side Panel - Node Details */}
-      {selectedNode && (
-        <div className="absolute top-16 right-0 w-96 h-full bg-white border-l shadow-lg overflow-y-auto">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Details</h2>
-              <button
-                onClick={() => setSelectedNode(null)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Title</label>
-                <input
-                  type="text"
-                  value={selectedNode.data.label}
-                  onChange={(e) => {
-                    setNodes((nds) =>
-                      nds.map((node) =>
-                        node.id === selectedNode.id
-                          ? { ...node, data: { ...node.data, label: e.target.value } }
-                          : node
-                      )
-                    );
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Type</label>
-                <p className="text-sm text-gray-600">
-                  {selectedNode.data.nodeData?.type || 'Unknown'}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Position</label>
-                <p className="text-sm text-gray-600">
-                  X: {Math.round(selectedNode.position.x)}, Y: {Math.round(selectedNode.position.y)}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Summary</label>
-                <textarea
-                  placeholder="Brief description..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Rules</label>
-                <textarea
-                  placeholder="Enter rules, one per line..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  rows={4}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Runbook</label>
-                <textarea
-                  placeholder="Step-by-step instructions..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  rows={6}
-                />
-              </div>
-
-              <button
-                onClick={() => { if (confirm('Delete this node? This cannot be undone.')) { handleNodeDelete(); } }}
-                className="w-full py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-              >
-                Delete Node
-              </button>
-            </div>
-          </div>
-        </div>
+      {selectedNode && isNodeModalOpen && (
+        <NodeModal
+          node={selectedNode}
+          onClose={() => setIsNodeModalOpen(false)}
+          onDelete={handleNodeDelete}
+        />
       )}
-
-      {/* hook up delete to existing handler */}
-      <script
-        // inline handler: replace the button above with this onClick in your JSX editor,
-        // or update the button directly to: onClick={() => { if (confirm('Delete this node?')) handleNodeDelete(); }}
-      />
     </div>
   );
 }

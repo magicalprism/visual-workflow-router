@@ -1,0 +1,18 @@
+ALTER TABLE node
+ADD COLUMN step_id VARCHAR(255),
+ADD COLUMN node_type VARCHAR(255),
+ADD COLUMN phase VARCHAR(255),
+ADD COLUMN owner VARCHAR(255),
+ADD COLUMN criticality VARCHAR(50),
+ADD COLUMN inputs TEXT,
+ADD COLUMN outputs TEXT,
+ADD COLUMN rules TEXT,
+ADD COLUMN edge_cases TEXT,
+ADD COLUMN logging_alerts TEXT,
+ADD COLUMN feature_keys TEXT,
+ADD COLUMN table_keys TEXT,
+ADD COLUMN service_keys TEXT,
+ADD COLUMN flags TEXT,
+ADD COLUMN target_duration_ms INTEGER,
+ADD COLUMN target_success_rate DECIMAL(5, 2),
+ADD COLUMN actuals TEXT;

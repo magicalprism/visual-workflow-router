@@ -1,0 +1,24 @@
+{
+  "name": "visual-workflow-router",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "next": "^12.0.0",
+    "supabase-js": "^1.0.0",
+    "reactflow": "^10.0.0",
+    "tailwindcss": "^2.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.0.0",
+    "eslint": "^7.0.0",
+    "eslint-config-next": "^12.0.0"
+  }
+}
