@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Repeater } from '@/components/repeater/repeater';
+import { Repeater } from '@/components/repeater/Repeater';
 import type { FieldConfig, TabDef } from '@/components/repeater/fieldTypes';
 import { makeSupabaseStore } from '@/components/repeater/stores/makeSupabaseStore';
 

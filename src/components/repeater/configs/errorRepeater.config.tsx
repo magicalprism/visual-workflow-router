@@ -2,7 +2,7 @@
 
 import React from 'react';
 // Use the local relative Repeater import that matches the on-disk path
-import { Repeater } from '../repeater';
+import { Repeater } from '../Repeater';
 import type { FieldConfig } from '../fieldTypes';
 import { makeSupabaseStore } from '../stores/makeSupabaseStore';
 
