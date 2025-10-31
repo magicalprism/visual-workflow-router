@@ -1,82 +1,70 @@
 'use client';
 
 import React from 'react';
-// Use the local relative Repeater import that matches the on-disk path
 import { Repeater } from '../Repeater';
-import type { FieldConfig } from '../fieldTypes';
 import { makeSupabaseStore } from '../stores/makeSupabaseStore';
+import type { FieldConfig } from '../fieldTypes';
 
-export type ErrorRow = {
+type ErrorScope = { workflowId: number; nodeId: number };
+
+type ErrorRow = {
   id?: number;
-  workflow_id: number;
-  node_id: number;
-  description: string;
-  is_fixed: boolean;
-  solution?: string | null;
-  solver_contact_id?: number | null;
-  reported_at?: string | null;
-  fixed_at?: string | null;
+  workflow_id?: number;
+  node_id?: number;
+  description?: string;
+  is_fixed?: boolean;
+  solution?: string;
+  owner_names?: string | null; // use DB column
   created_at?: string | null;
   updated_at?: string | null;
 };
 
-type ErrorScope = { workflowId: number; nodeId: number };
-
-const errorStore = makeSupabaseStore<ErrorRow, ErrorScope>({
-  table: 'error',
-  select:
-    'id,workflow_id,node_id,description,is_fixed,solution,solver_contact_id,reported_at,fixed_at,created_at,updated_at',
-  scopeToFilters: (s: ErrorScope) => [
-    { col: 'workflow_id', value: s.workflowId },
-    { col: 'node_id', value: s.nodeId }
-  ],
-  sort: (q: any) => q.order('is_fixed', { ascending: true }).order('reported_at', { ascending: false })
-});
-
-const fields: FieldConfig<ErrorRow>[] = [
+const fieldDefs: FieldConfig<ErrorRow>[] = [
+  { key: 'is_fixed', label: 'Fixed?', type: 'toggle' }, // toggle at top
   { key: 'description', label: 'Description', type: 'textarea', required: true, rows: 3, placeholder: 'What went wrong?' },
-  { key: 'is_fixed', label: 'Fixed?', type: 'checkbox' },
   {
     key: 'solution',
     label: 'Solution',
     type: 'textarea',
     rows: 2,
     placeholder: 'How was it fixed?',
-    disabled: (r: ErrorRow) => !r.is_fixed
+    disabled: (r: ErrorRow) => !r?.is_fixed
   },
-  { key: 'solver_contact_id', label: 'Solver contact ID', type: 'number', placeholder: 'e.g. 123' }
+  { key: 'owner_names', label: 'Owner', type: 'text', placeholder: 'e.g. Jane Doe' },
 ];
 
-const makeBlank = (s: ErrorScope): ErrorRow => ({
-  workflow_id: s.workflowId,
-  node_id: s.nodeId,
-  description: '',
-  is_fixed: false,
-  solution: '',
-  solver_contact_id: null,
-  reported_at: new Date().toISOString()
-});
+export function ErrorRepeaterMount({ workflowId, nodeId }: { workflowId?: number; nodeId?: number }) {
+  const wf = workflowId != null ? Number(workflowId) : undefined;
+  const nd = nodeId != null ? Number(nodeId) : undefined;
 
-export function ErrorRepeaterMount({ workflowId, nodeId }: { workflowId: number; nodeId: number }) {
-  console.log('ErrorRepeaterMount mounted', { workflowId, nodeId });
+  console.log('ErrorRepeaterMount mounted', { workflowId: wf, nodeId: nd });
+
+  if (!wf || !nd) return <div className="text-xs text-gray-500">Select a workflow & node to view errors.</div>;
+
+  const store = makeSupabaseStore<ErrorRow, ErrorScope>({
+    table: 'error',
+    select: 'id,workflow_id,node_id,description,is_fixed,solution,owner_names,created_at,updated_at',
+    scopeToFilters: (s: ErrorScope) => [
+      { col: 'workflow_id', value: s.workflowId },
+      { col: 'node_id', value: s.nodeId },
+    ],
+  });
+
   return (
     <Repeater
       title="Errors"
-      scope={{ workflowId, nodeId }}
-      store={errorStore}
-      fields={fields}
-      makeBlank={makeBlank}
-      sortInMemory={(a: ErrorRow, b: ErrorRow) => {
-        const aKey = a.is_fixed ? 1 : 0;
-        const bKey = b.is_fixed ? 1 : 0;
-        if (aKey !== bKey) return aKey - bKey;
-        const ta = a.reported_at ?? a.created_at ?? '';
-        const tb = b.reported_at ?? b.created_at ?? '';
-        if (ta && tb) return tb.localeCompare(ta);
-        return (b.id ?? 0) - (a.id ?? 0);
-      }}
+      showTitle={false}
+      store={store}
+      scope={{ workflowId: wf, nodeId: nd }}
+      fields={fieldDefs}
+      makeBlank={() => ({
+        workflow_id: wf,
+        node_id: nd,
+        description: '',
+        is_fixed: false,
+        solution: '',
+        owner_names: '',
+      })}
     />
   );
 }
-
-export default ErrorRepeaterMount;

@@ -92,7 +92,10 @@ const RulesTab: React.FC<RulesTabProps> = ({ workflowId, nodeId }) => {
       <div>
         <label className="text-sm block mb-2">Errors</label>
         {workflowId && nodeId ? (
-          <ErrorRepeaterMount workflowId={workflowId} nodeId={nodeId} />
+          <>
+            {console.log('RulesTab -> rendering ErrorRepeaterMount', { workflowId, nodeId })}
+            <ErrorRepeaterMount workflowId={workflowId} nodeId={nodeId} />
+          </>
         ) : (
           <div className="text-xs text-gray-500">Errors will appear here when a workflow and node are selected.</div>
         )}

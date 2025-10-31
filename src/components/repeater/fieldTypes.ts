@@ -1,17 +1,18 @@
 export type FieldType = 'text' | 'number' | 'textarea' | 'checkbox' | 'select' | 'toggle' | 'date' | 'email';
 
-export type Option = { value: string | number; label: string };
-
-export type FieldConfig<T> = {
-    key: keyof T | string;
-    label?: string;
-    type?: FieldType;
-    required?: boolean;
-    rows?: number;
-    placeholder?: string;
-    disabled?: (row: T) => boolean;
-    options?: { value: string | number; label: string }[];
+// Field config used across Repeaters
+export type FieldConfig<Row> = {
+  key: keyof Row | string;
+  label?: string;
+  type?: FieldType;
+  required?: boolean;
+  rows?: number;
+  placeholder?: string;
+  disabled?: (row: Row) => boolean;
+  options?: { value: string | number; label: string }[];
 };
+
+export type Option = { value: string | number; label: string };
 
 export type TabDef<T> = {
     label: string;

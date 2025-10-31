@@ -18,12 +18,13 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
       open={isOpen}
       onClose={onClose}
       initialFocus={modalRef}
-      className="fixed inset-0 z-50 overflow-hidden"
+      className="fixed inset-0 overflow-hidden"
+      style={{ zIndex: 2147483647 }}
     >
       {/* backdrop */}
       <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
 
-      <div className="relative z-10 h-full flex items-stretch justify-end">
+      <div className="relative h-full flex items-stretch justify-end" style={{ zIndex: 2147483647 }}>
         <Dialog.Panel
           ref={modalRef}
           aria-modal="true"

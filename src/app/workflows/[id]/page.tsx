@@ -24,7 +24,8 @@ import FlowToolbar from '@/components/FlowToolbar';
 import NodeModal from '@/app/workflows/NodeModal';
 import ExportControls from '@/components/ExportControls';
 import { useReactFlow } from 'reactflow';
-import ProblemsPanel from '../../../components/repeater/ProblemsPanel';
+import Drawer from '@/components/Drawer';
+import ProblemsPanel from '@/components/repeater/ProblemsPanel';
 
 type WorkflowRow = {
   id: number;
@@ -34,7 +35,7 @@ type WorkflowRow = {
   status?: string;
 };
 
-export default function WorkflowBuilderPage() {
+export default function WorkflowPage() {
   const params = useParams();
   const router = useRouter();
   const workflowId = Number(params?.id);
@@ -442,7 +443,7 @@ export default function WorkflowBuilderPage() {
   const accentColorFor = (kind?: string) => {
     switch ((kind || '').toLowerCase()) {
       case 'action': return '#2563eb';
-      case 'decision': return '#d97706';
+      case 'decision': return '#e2bd17ff';
       case 'human': return '#7c3aed';
       case 'exception': return '#ef4444';
       case 'terminal': return '#10b981';
@@ -506,6 +507,8 @@ export default function WorkflowBuilderPage() {
     return <ExportControls title={title} nodes={nodes} edges={edges} />;
   }
 
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
@@ -525,6 +528,15 @@ export default function WorkflowBuilderPage() {
           </button>
           <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">Simulate</button>
           <ExportControls title={workflow?.title} nodes={nodes} edges={edges} />
+          {/* Details / drawer trigger */}
+          <button
+            type="button"
+            onClick={() => setIsDrawerOpen(true)}
+            className="inline-flex items-center justify-center h-10 px-4 text-sm font-medium bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+            title="Open workflow details"
+          >
+            Details
+          </button>
         </div>
       </div>
 
@@ -642,92 +654,109 @@ export default function WorkflowBuilderPage() {
         )}
 
          {/* Node modal (details). pass selectedNode object so modal can read node.data */}
-         {selectedNode && (
-          <NodeModal
-            nodeData={selectedNode}
-            isOpen={isNodeModalOpen}
-            onClose={() => {
-              setIsNodeModalOpen(false);
-              setSelectedNode(null);
-            }}
-            onDelete={() => {
-              const dbId = (selectedNode?.data as any)?.nodeData?.id ?? selectedNode?.id;
-              handleNodeDelete(String(dbId));
-              setIsNodeModalOpen(false);
-              setSelectedNode(null);
-            }}
-            onChange={(updatedNode) => {
-              // normalize updatedNode (modal may pass DB row or patch)
-              const normalized = updatedNode?.data?.nodeData ? updatedNode.data.nodeData : updatedNode || {};
-
-              // update nodes array so ReactFlow re-renders node style/label immediately
-              setNodes((nds) =>
-                nds.map((n) => {
-                  if (String(n.id) !== String(normalized.id ?? selectedNode?.id)) return n;
-                  const nodeData = { ...(n.data as any)?.nodeData, ...(normalized || {}) };
-                  const golden = !!(nodeData.details && nodeData.details.goldenPath === true);
-                  const kind = nodeData.type ?? (n.data as any)?.nodeData?.type ?? 'action';
-                  return {
-                    ...n,
-                    data: { ...(n.data as any), nodeData, label: nodeData.title ?? (n.data as any)?.label },
-                    style: nodeStyleFor(golden, kind),
-                  };
-                })
-               );
-
-              // keep selectedNode in sync so modal input reflects change immediately
-              setSelectedNode((prev: any) => {
-                if (!prev) return prev;
-                const prevNodeData = (prev.data as any)?.nodeData ?? {};
-                const merged = { ...prevNodeData, ...(normalized || {}) };
-                return {
-                  ...prev,
-                  data: { ...(prev.data ?? {}), nodeData: merged },
-                  label: String(merged.title ?? ((prev.data as any)?.label ?? '')),
-                };
-              });
-
-              // update edges that originate from this node so their color matches the node kind immediately
-              const nodeIdStr = String(normalized.id ?? selectedNode?.id);
-              const newKind = normalized.type ?? (normalized as any).type;
-              if (nodeIdStr) {
-                setEdges((eds) =>
-                  eds.map((e) => {
-                    if (String(e.source) === nodeIdStr) {
-                      return { ...e, style: edgeStyleFor(newKind ?? getNodeKind(e.source)) };
-                    }
-                    return e;
-                  })
-                );
-              }
-
-              // persist change immediately so no extra Save click required
-              void persistNode(normalized);
-            }}
-          />
+         {isNodeModalOpen && (
+          <>
+            <NodeModal
+              nodeData={selectedNode}
+              isOpen={isNodeModalOpen}
+              onClose={() => setIsNodeModalOpen(false)}
+              onChange={(nodePayload: any) => {
+                // persist changes and update selectedNode state
+                persistNode(nodePayload);
+                setSelectedNode(nodePayload);
+              }}
+              onDelete={() => {
+                // NodeModal calls onDelete() without args — use selectedNode.id here
+                handleNodeDelete(String(selectedNode?.id ?? ''));
+                setIsNodeModalOpen(false);
+              }}
+            />
+          </>
         )}
 
-        <div style={{ padding: 20 }}>
-          <header>
-            <h1 style={{ margin: 0, fontSize: 20 }}>Workflow {workflowId}</h1>
-          </header>
-
-          <main style={{ marginTop: 16, display: 'grid', gap: 20 }}>
-            <section>
-              <h2 style={{ fontSize: 16, marginBottom: 8 }}>Overview</h2>
-              <div style={{ padding: 12, border: '1px solid #e5e7eb', borderRadius: 8 }}>
-                <p style={{ margin: 0, color: '#374151' }}>Workflow details and metadata appear here.</p>
+        {/* Drawer for workflow-specific fields / problems */}
+        <Drawer
+          isOpen={isDrawerOpen}
+          onClose={() => setIsDrawerOpen(false)}
+          title={workflow?.title ?? `Workflow ${workflowId}`}
+          widthClass="max-w-lg"
+        >
+          {workflow ? (
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm block mb-1">Title</label>
+                <input
+                  value={workflow.title ?? ''}
+                  onChange={(e) => setWorkflow({ ...workflow, title: e.target.value })}
+                  className="w-full border rounded px-2 py-1"
+                />
               </div>
-            </section>
 
-            <section>
-              <h2 style={{ fontSize: 16, marginBottom: 8 }}>Problems</h2>
-              <div style={{ padding: 12, border: '1px solid #e5e7eb', borderRadius: 8 }}>
+              <div>
+                <label className="text-sm block mb-1">Domain</label>
+                <input
+                  value={workflow.domain ?? ''}
+                  onChange={(e) => setWorkflow({ ...workflow, domain: e.target.value })}
+                  className="w-full border rounded px-2 py-1"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm block mb-1">Version</label>
+                  <input
+                    value={workflow.version ?? ''}
+                    onChange={(e) => setWorkflow({ ...workflow, version: e.target.value })}
+                    className="w-full border rounded px-2 py-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm block mb-1">Status</label>
+                  <input
+                    value={workflow.status ?? ''}
+                    onChange={(e) => setWorkflow({ ...workflow, status: e.target.value })}
+                    className="w-full border rounded px-2 py-1"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setIsDrawerOpen(false)} className="px-3 py-1.5 border rounded">Close</button>
+                <button
+                  onClick={async () => {
+                    setSaving(true);
+                    try {
+                      await supabase
+                        .from('workflow')
+                        .update({
+                          title: workflow.title,
+                          domain: workflow.domain,
+                          version: workflow.version,
+                          status: workflow.status,
+                        })
+                        .eq('id', workflowId);
+                      setIsDrawerOpen(false);
+                    } catch (err) {
+                      console.error('update workflow failed', err);
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
+                  className="px-3 py-1.5 bg-blue-600 text-white rounded"
+                >
+                  Save
+                </button>
+              </div>
+
+              <div className="pt-4 border-t">
+                <h3 className="text-sm font-medium mb-2">Problems</h3>
                 <ProblemsPanel workflowId={workflowId} />
               </div>
-            </section>
-          </main>
-        </div>
+            </div>
+          ) : (
+            <div className="text-xs text-gray-500">No workflow selected</div>
+          )}
+        </Drawer>
       </div>
     </div>
   );
