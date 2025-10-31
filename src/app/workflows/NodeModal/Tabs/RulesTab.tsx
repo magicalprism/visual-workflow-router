@@ -1,15 +1,21 @@
-import React, { useState } from 'react';
+'use client';
 
-const RulesTab: React.FC = () => {
+import React, { useState } from 'react';
+import { ErrorRepeaterMount } from '../../../../components/repeater/configs/errorRepeater.config';
+
+interface RulesTabProps {
+  workflowId?: number | null;
+  nodeId?: number | null;
+}
+
+const RulesTab: React.FC<RulesTabProps> = ({ workflowId, nodeId }) => {
   const [inputs, setInputs] = useState({
     inputs: '',
     outputs: '',
     rules: '',
     edgeCases: '',
-    loggingAlerts: '',
   });
 
-  // simple local validation placeholder
   const validate = () => true;
   const errors: Record<string, string | undefined> = {};
 
@@ -21,7 +27,7 @@ const RulesTab: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) {
-      // Handle form submission logic
+      // persist rules meta as needed
     }
   };
 
@@ -84,17 +90,12 @@ const RulesTab: React.FC = () => {
       </div>
 
       <div>
-        <label htmlFor="loggingAlerts" className="text-sm block mb-1">Logging &amp; Alerts</label>
-        <textarea
-          id="loggingAlerts"
-          name="loggingAlerts"
-          value={inputs.loggingAlerts}
-          onChange={handleChange}
-          placeholder="Specify logging and alerting mechanisms..."
-          aria-invalid={!!errors.loggingAlerts}
-          className="w-full border rounded px-2 py-1"
-        />
-        {errors.loggingAlerts && <span className="text-red-600">{errors.loggingAlerts}</span>}
+        <label className="text-sm block mb-2">Errors</label>
+        {workflowId && nodeId ? (
+          <ErrorRepeaterMount workflowId={workflowId} nodeId={nodeId} />
+        ) : (
+          <div className="text-xs text-gray-500">Errors will appear here when a workflow and node are selected.</div>
+        )}
       </div>
 
       <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">

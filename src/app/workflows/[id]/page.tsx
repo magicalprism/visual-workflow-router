@@ -24,6 +24,7 @@ import FlowToolbar from '@/components/FlowToolbar';
 import NodeModal from '@/app/workflows/NodeModal';
 import ExportControls from '@/components/ExportControls';
 import { useReactFlow } from 'reactflow';
+import ProblemsPanel from '../../../components/repeater/ProblemsPanel';
 
 type WorkflowRow = {
   id: number;
@@ -705,6 +706,28 @@ export default function WorkflowBuilderPage() {
             }}
           />
         )}
+
+        <div style={{ padding: 20 }}>
+          <header>
+            <h1 style={{ margin: 0, fontSize: 20 }}>Workflow {workflowId}</h1>
+          </header>
+
+          <main style={{ marginTop: 16, display: 'grid', gap: 20 }}>
+            <section>
+              <h2 style={{ fontSize: 16, marginBottom: 8 }}>Overview</h2>
+              <div style={{ padding: 12, border: '1px solid #e5e7eb', borderRadius: 8 }}>
+                <p style={{ margin: 0, color: '#374151' }}>Workflow details and metadata appear here.</p>
+              </div>
+            </section>
+
+            <section>
+              <h2 style={{ fontSize: 16, marginBottom: 8 }}>Problems</h2>
+              <div style={{ padding: 12, border: '1px solid #e5e7eb', borderRadius: 8 }}>
+                <ProblemsPanel workflowId={workflowId} />
+              </div>
+            </section>
+          </main>
+        </div>
       </div>
     </div>
   );
