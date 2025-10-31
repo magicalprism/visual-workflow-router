@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ErrorRepeaterMount } from '../../../../components/Repeater/configs/errorRepeater.config';
+import { ErrorRepeaterMount } from '../../../../components/repeater/configs/errorRepeater.config';
 
 interface RulesTabProps {
   workflowId?: number | null;

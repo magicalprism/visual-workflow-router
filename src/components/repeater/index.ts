@@ -1,6 +1,6 @@
 
-export { makeSupabaseStore } from '@/components/Repeater/stores/makeSupabaseStore.js';
-export { ErrorRepeaterMount } from '@/components/Repeater/configs/errorRepeater.config';
-export { ProblemsRepeaterMount } from '@/components/Repeater/configs/problemRepeater.config';
-export { default as ProblemsPanel } from '@/components/Repeater/ProblemsPanel';
+export { makeSupabaseStore } from '@/components/repeater/stores/makeSupabaseStore.js';
+export { ErrorRepeaterMount } from '@/components/repeater/configs/errorRepeater.config';
+export { ProblemsRepeaterMount } from '@/components/repeater/configs/problemRepeater.config';
+export { default as ProblemsPanel } from '@/components/repeater/ProblemsPanel';
 

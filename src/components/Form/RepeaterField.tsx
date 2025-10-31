@@ -327,22 +327,22 @@ const makeErrorBlank = (s: ErrorScope): ErrorRow => ({
 
 export function ErrorRepeaterMount({ workflowId, nodeId }: { workflowId: number; nodeId: number }) {
   return (
-    <Repeater<ErrorRow, ErrorScope>
-      title="Errors"
-      scope={{ workflowId, nodeId }}
-      store={errorStore}
-      fields={errorFields}
-      makeBlank={makeErrorBlank}
-      sortInMemory={(a, b) => {
-        const aKey = (a.is_fixed ? 1 : 0);
-        const bKey = (b.is_fixed ? 1 : 0);
-        if (aKey !== bKey) return aKey - bKey;
-        const ta = a.reported_at ?? a.created_at ?? '';
-        const tb = b.reported_at ?? b.created_at ?? '';
-        if (ta && tb) return tb.localeCompare(ta);
-        return (b.id ?? 0) - (a.id ?? 0);
-      }}
-    />
+    <Repeater
+       title="Errors"
+       scope={{ workflowId, nodeId }}
+       store={errorStore}
+       fields={errorFields}
+       makeBlank={makeErrorBlank}
+       sortInMemory={(a: ErrorRow, b: ErrorRow) => {
+         const aKey = a.is_fixed ? 1 : 0;
+         const bKey = b.is_fixed ? 1 : 0;
+         if (aKey !== bKey) return aKey - bKey;
+         const ta = a.reported_at ?? a.created_at ?? '';
+         const tb = b.reported_at ?? b.created_at ?? '';
+         if (ta && tb) return tb.localeCompare(ta);
+         return (b.id ?? 0) - (a.id ?? 0);
+       }}
+     />
   );
 }
 
@@ -392,14 +392,14 @@ const makeProblemBlank = (s: ProblemScope): ProblemRow => ({
 
 export function ProblemsRepeaterMount({ workflowId }: { workflowId: number }) {
   return (
-    <Repeater<ProblemRow, ProblemScope>
-      title="Problems"
-      scope={{ workflowId }}
-      store={problemStore}
-      fields={problemFields}
-      makeBlank={makeProblemBlank}
-      tabs={tabs}
-      sortInMemory={(a, b) => Number(b.id ?? 0) - Number(a.id ?? 0)}
-    />
+    <Repeater
+       title="Problems"
+       scope={{ workflowId }}
+       store={problemStore}
+       fields={problemFields}
+       makeBlank={makeProblemBlank}
+       tabs={tabs}
+       sortInMemory={(a, b) => Number(b.id ?? 0) - Number(a.id ?? 0)}
+     />
   );
 }
