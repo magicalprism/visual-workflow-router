@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ProblemsRepeaterMount } from './configs/problemRepeater.config';
+import { ProblemsRepeaterMount } from '@/components/Repeater/configs/problemRepeater.config';
 
 export type ProblemsPanelProps = {
   workflowId: number;

@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Repeater } from '../index';
+// Use the local relative Repeater import that matches the on-disk path
+import { Repeater } from '../Repeater';
 import type { FieldConfig } from '../fieldTypes';
 import { makeSupabaseStore } from '../stores/makeSupabaseStore';
 
@@ -58,7 +59,7 @@ const makeBlank = (s: ErrorScope): ErrorRow => ({
 
 export function ErrorRepeaterMount({ workflowId, nodeId }: { workflowId: number; nodeId: number }) {
   return (
-    <Repeater<ErrorRow, ErrorScope>
+    <Repeater
       title="Errors"
       scope={{ workflowId, nodeId }}
       store={errorStore}
@@ -78,60 +79,3 @@ export function ErrorRepeaterMount({ workflowId, nodeId }: { workflowId: number;
 }
 
 export default ErrorRepeaterMount;
-
-<form onSubmit={handleSubmit} className="space-y-4">
-  <div>
-    <label htmlFor="outputs" className="text-sm block mb-1">Outputs</label>
-    <textarea
-      id="outputs"
-      name="outputs"
-      value={inputs.outputs}
-      onChange={handleChange}
-      placeholder="Define the outputs for this node..."
-      aria-invalid={!!errors.outputs}
-      className="w-full border rounded px-2 py-1"
-    />
-    {errors.outputs && <span className="text-red-600">{errors.outputs}</span>}
-  </div>
-
-  <div>
-    <label htmlFor="rules" className="text-sm block mb-1">Rules</label>
-    <textarea
-      id="rules"
-      name="rules"
-      value={inputs.rules}
-      onChange={handleChange}
-      placeholder="Specify the rules for this node..."
-      aria-invalid={!!errors.rules}
-      className="w-full border rounded px-2 py-1"
-    />
-    {errors.rules && <span className="text-red-600">{errors.rules}</span>}
-  </div>
-
-  <div>
-    <label htmlFor="edgeCases" className="text-sm block mb-1">Edge Cases</label>
-    <textarea
-      id="edgeCases"
-      name="edgeCases"
-      value={inputs.edgeCases}
-      onChange={handleChange}
-      placeholder="Describe any edge cases..."
-      aria-invalid={!!errors.edgeCases}
-      className="w-full border rounded px-2 py-1"
-    />
-    {errors.edgeCases && <span className="text-red-600">{errors.edgeCases}</span>}
-  </div>
-
-  <div>
-    <label className="text-sm block mb-2">Errors</label>
-    {workflowId && nodeId ? (
-      <ErrorRepeaterMount workflowId={workflowId} nodeId={nodeId} />
-    ) : (
-      <div className="text-xs text-gray-500">Errors will appear here when a workflow and node are selected.</div>
-    )}
-  </div>
-
-  <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-    Save Rules
-  </button>
-</form>

@@ -2,7 +2,8 @@
 'use client';
 
 import { createClient } from '@supabase/supabase-js';
-import type { ListStore } from '../Repeater';
+// fix import to use the actual path/casing of the Repeater file
+import type { ListStore } from '@/components/Repeater/Repeater';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',

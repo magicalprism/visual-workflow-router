@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Repeater } from '@components/Repeater/Repeater';
-import type { FieldConfig, TabDef } from '../fieldTypes';
-import { makeSupabaseStore } from '../stores/makeSupabaseStore';
+import { Repeater } from '@/components/Repeater/Repeater';
+import type { FieldConfig, TabDef } from '@/components/Repeater/fieldTypes';
+import { makeSupabaseStore } from '@/components/Repeater/stores/makeSupabaseStore';
 
 export type ProblemRow = {
 id?: number;
