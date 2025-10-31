@@ -1,5 +1,9 @@
 import { supabase } from '@/lib/supabase';
-import { WorkflowNode } from '@/types';
+// 'WorkflowNode' is not exported from '@/types'. Use a local alias for now.
+// Replace this with a shared exported Node type from src/types when available.
+type WorkflowNode = any;
+// import other types from '@/types' as needed
+// import type { Workflow } from '@/types';
 
 export async function fetchNodeById(nodeId: number): Promise<WorkflowNode | null> {
   const { data, error } = await supabase

@@ -58,6 +58,7 @@ const makeBlank = (s: ErrorScope): ErrorRow => ({
 });
 
 export function ErrorRepeaterMount({ workflowId, nodeId }: { workflowId: number; nodeId: number }) {
+  console.log('ErrorRepeaterMount mounted', { workflowId, nodeId });
   return (
     <Repeater
       title="Errors"
