@@ -1,18 +1,16 @@
-export type FieldType = 'text' | 'textarea' | 'checkbox' | 'number' | 'select';
+export type FieldType = 'text' | 'number' | 'textarea' | 'checkbox' | 'select' | 'toggle' | 'date' | 'email';
 
 export type Option = { value: string | number; label: string };
 
 export type FieldConfig<T> = {
-    key: keyof T;
-    label: string;
-    type: FieldType;
+    key: keyof T | string;
+    label?: string;
+    type?: FieldType;
     required?: boolean;
-    disabled?: (row: T) => boolean;
-    normalizeIn?: (v: any) => any;
-    normalizeOut?: (v: any) => any;
-    options?: Option[];
-    placeholder?: string;
     rows?: number;
+    placeholder?: string;
+    disabled?: (row: T) => boolean;
+    options?: { value: string | number; label: string }[];
 };
 
 export type TabDef<T> = {
