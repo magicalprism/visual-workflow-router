@@ -1,9 +1,9 @@
+// ...existing code...
 'use client';
 
 import React, { useEffect, useState } from 'react';
 import type { FieldConfig, TabDef } from './fieldTypes';
 
-// exported ListStore type used by stores
 export type ListStore<T, Scope> = {
     list: (scope: Scope) => Promise<T[]>;
     insert: (scope: Scope, row: T) => Promise<T>;
@@ -22,8 +22,6 @@ export type RepeaterProps<Row, Scope> = {
   className?: string;
 };
 
-// Minimal functional repeater so the NodeModal can add/list items.
-// Replace with your full UI later as needed.
 export function Repeater<Row extends Record<string, any>, Scope>({
   title,
   scope,
@@ -44,6 +42,8 @@ export function Repeater<Row extends Record<string, any>, Scope>({
       console.log('Repeater.load result count=', Array.isArray(data) ? data.length : typeof data, data);
       if (sortInMemory && Array.isArray(data)) data.sort(sortInMemory as any);
       setItems(data ?? []);
+    } catch (err) {
+      console.error('Repeater.load error', err);
     } finally {
       setLoading(false);
     }
@@ -51,7 +51,6 @@ export function Repeater<Row extends Record<string, any>, Scope>({
 
   useEffect(() => {
     load();
-    // stringify scope to re-run when values change (simple shallow trigger)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(scope)]);
 
@@ -71,8 +70,8 @@ export function Repeater<Row extends Record<string, any>, Scope>({
     try {
       const updated = await store.update(scope, id, patch);
       setItems(prev => prev.map(r => ((r as any).id === id ? updated : r)));
-    } catch {
-      // on failure, optionally reload
+    } catch (err) {
+      console.error('Repeater.update error', err);
       await load();
     }
   };
@@ -106,7 +105,6 @@ export function Repeater<Row extends Record<string, any>, Scope>({
                     {fields.map(f => {
                       const val = (item as any)[f.key as string];
                       const keyStr = f.key as string;
-                      // simple editors for common field types
                       if (f.type === 'textarea') {
                         return (
                           <div key={keyStr}>
